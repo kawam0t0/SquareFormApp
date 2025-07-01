@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { X, Camera, Keyboard } from "lucide-react"
+import { X, Camera } from "lucide-react"
 
 // html5-qrcode の型定義を追加
 declare global {
@@ -21,8 +21,8 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [html5QrCode, setHtml5QrCode] = useState<any>(null)
-  const [showManualInput, setShowManualInput] = useState(false)
-  const [manualInput, setManualInput] = useState("")
+  const [showManualInput, setShowManualInput] = useState(false) // この状態は今回は使用しませんが、以前のコンテキストに合わせて残します
+  const [manualInput, setManualInput] = useState("") // この状態も今回は使用しません
 
   useEffect(() => {
     // モーダルが閉じられたら、スキャナーをクリアして状態をリセット
@@ -44,7 +44,8 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
 
     // モーダルが開いていて、スキャナーがまだ初期化されていない場合、すぐにレンダリングを試みる
     const initScanner = async () => {
-      if (html5QrCode || showManualInput) return // すでに初期化されているか、手動入力モードの場合は何もしない
+      // `showManualInput` の条件を削除し、常にスキャナーの初期化を試みる
+      if (html5QrCode) return // すでに初期化されている場合は何もしない
 
       try {
         setError(null) // エラーをリセット
@@ -92,7 +93,6 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
           setIsScanning(true)
         } else {
           setError("スキャンコンテナ（DOM要素）が見つかりません。")
-          setShowManualInput(true)
         }
       } catch (err: any) {
         // ライブラリのインポート、初期化、またはカメラ起動時のエラーをキャッチ
@@ -104,7 +104,6 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
         } else {
           setError(`バーコードスキャナーの初期化に失敗しました: ${err.message || "不明なエラー"}`)
         }
-        setShowManualInput(true) // カメラ起動に失敗した場合は手動入力を提案
       }
     }
 
@@ -120,7 +119,7 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
         }
       }
     }
-  }, [isOpen, html5QrCode, onScan, onClose, showManualInput])
+  }, [isOpen, html5QrCode, onScan, onClose]) // showManualInput を依存配列から削除
 
   const handleClose = () => {
     if (html5QrCode) {
@@ -133,23 +132,15 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
     setHtml5QrCode(null)
     setIsScanning(false)
     setError(null)
-    setShowManualInput(false)
-    setManualInput("")
     onClose()
   }
 
+  // 手動入力関連の関数は、UIから削除されているため、ここでは使用されません
   const handleManualSubmit = () => {
     if (manualInput.trim()) {
       onScan(manualInput.trim())
       handleClose()
     }
-  }
-
-  const handleTestScan = () => {
-    // テスト用のサンプル会員番号
-    const testMembershipNumber = "TEST123456789"
-    onScan(testMembershipNumber)
-    handleClose()
   }
 
   if (!isOpen) return null
@@ -174,59 +165,14 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
 
         {/* スキャナー部分 */}
         <div className="p-4">
-          {showManualInput ? (
-            <div className="text-center py-4">
-              <div className="mb-4">
-                <Keyboard className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                <p className="text-sm text-gray-600 mb-4">手動で会員番号を入力してください</p>
-              </div>
-
-              <div className="mb-4">
-                <input
-                  type="text"
-                  value={manualInput}
-                  onChange={(e) => setManualInput(e.target.value)}
-                  placeholder="会員番号を入力"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                  autoFocus
-                />
-              </div>
-
-              <div className="flex gap-2 justify-center">
-                <button
-                  onClick={handleTestScan}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
-                >
-                  テスト用番号を使用
-                </button>
-                <button
-                  onClick={handleManualSubmit}
-                  disabled={!manualInput.trim()}
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  確定
-                </button>
-                <button
-                  onClick={handleClose}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                >
-                  キャンセル
-                </button>
-              </div>
-            </div>
-          ) : error ? (
+          {/* showManualInput の条件を削除し、エラーがない場合は常にスキャナーを表示 */}
+          {error ? (
             <div className="text-center py-8">
               <div className="text-red-500 mb-4">
                 <Camera className="w-12 h-12 mx-auto mb-2" />
                 <p className="text-sm">{error}</p>
               </div>
               <div className="flex gap-2 justify-center">
-                <button
-                  onClick={() => setShowManualInput(true)}
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                >
-                  手動入力に切り替え
-                </button>
                 <button
                   onClick={handleClose}
                   className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
@@ -248,18 +194,6 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
               <div id="qr-reader" ref={scannerRef} className="w-full" style={{ minHeight: "300px" }} />
 
               <div className="mt-4 text-center flex gap-2 justify-center">
-                <button
-                  onClick={() => setShowManualInput(true)}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
-                >
-                  手動入力
-                </button>
-                <button
-                  onClick={handleTestScan}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
-                >
-                  テスト用番号
-                </button>
                 <button
                   onClick={handleClose}
                   className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
