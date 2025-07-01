@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       },
     })
 
-    let matchingCustomer = null
+    let matchingCustomer: any = null
 
     // メールアドレスで見つかった顧客の中から、電話番号と車種が一致するものを探す
     if (emailSearchResult.customers && emailSearchResult.customers.length > 0) {
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
     })
 
     // 顧客が見つからない場合の処理を変更
-    let customerId = null
+    let customerId: string | null = null
     let wasCustomerFound = false
 
     if (matchingCustomer && matchingCustomer.id) {
@@ -153,6 +153,9 @@ export async function POST(request: Request) {
       }
 
       // 顧客情報を更新
+      if (!customerId) {
+        throw new Error("顧客IDが見つかりません")
+      }
       const { result: updateResult } = await squareClient.customersApi.updateCustomer(customerId, updateData)
 
       // クレジットカード情報の更新
@@ -188,7 +191,7 @@ export async function POST(request: Request) {
     const sheetData = [
       formatJapanDateTime(new Date()), // A列
       operation, // B列
-      wasCustomerFound ? matchingCustomer.referenceId || "" : "", // C列
+      wasCustomerFound && matchingCustomer ? matchingCustomer.referenceId || "" : "", // C列
       store, // D列
       `${familyName} ${givenName}`, // E列
       email, // F列
