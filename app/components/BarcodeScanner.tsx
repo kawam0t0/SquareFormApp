@@ -92,6 +92,7 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
           setIsScanning(true)
         } else {
           setError("スキャンコンテナ（DOM要素）が見つかりません。")
+          setShowManualInput(true)
         }
       } catch (err: any) {
         // ライブラリのインポート、初期化、またはカメラ起動時のエラーをキャッチ
@@ -103,6 +104,7 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
         } else {
           setError(`バーコードスキャナーの初期化に失敗しました: ${err.message || "不明なエラー"}`)
         }
+        setShowManualInput(true) // カメラ起動に失敗した場合は手動入力を提案
       }
     }
 
@@ -131,6 +133,8 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
     setHtml5QrCode(null)
     setIsScanning(false)
     setError(null)
+    setShowManualInput(false)
+    setManualInput("")
     onClose()
   }
 
@@ -139,6 +143,13 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
       onScan(manualInput.trim())
       handleClose()
     }
+  }
+
+  const handleTestScan = () => {
+    // テスト用のサンプル会員番号
+    const testMembershipNumber = "TEST123456789"
+    onScan(testMembershipNumber)
+    handleClose()
   }
 
   if (!isOpen) return null
@@ -183,6 +194,12 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
 
               <div className="flex gap-2 justify-center">
                 <button
+                  onClick={handleTestScan}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
+                >
+                  テスト用番号を使用
+                </button>
+                <button
                   onClick={handleManualSubmit}
                   disabled={!manualInput.trim()}
                   className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -205,6 +222,12 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
               </div>
               <div className="flex gap-2 justify-center">
                 <button
+                  onClick={() => setShowManualInput(true)}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  手動入力に切り替え
+                </button>
+                <button
                   onClick={handleClose}
                   className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
                 >
@@ -225,6 +248,18 @@ export function BarcodeScanner({ isOpen, onClose, onScan }: BarcodeScannerProps)
               <div id="qr-reader" ref={scannerRef} className="w-full" style={{ minHeight: "300px" }} />
 
               <div className="mt-4 text-center flex gap-2 justify-center">
+                <button
+                  onClick={() => setShowManualInput(true)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+                >
+                  手動入力
+                </button>
+                <button
+                  onClick={handleTestScan}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
+                >
+                  テスト用番号
+                </button>
                 <button
                   onClick={handleClose}
                   className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
