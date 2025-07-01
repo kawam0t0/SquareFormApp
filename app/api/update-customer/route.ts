@@ -48,6 +48,7 @@ export async function POST(request: Request) {
       newCarModel,
       newCarColor,
       newEmail,
+      membershipNumber, // 会員番号を追加
     } = formData
 
     // メールアドレスで検索
@@ -159,23 +160,25 @@ export async function POST(request: Request) {
 
     // Google Sheetsにデータを追加
     const sheetData = [
-      formatJapanDateTime(new Date()),
-      operation,
-      matchingCustomer.referenceId || "",
-      store,
-      `${familyName} ${givenName}`, // 姓名をそのまま使用
-      email,
-      operation === "メールアドレス変更" ? newEmail : "",
-      phone,
-      carModel || newCarModel || existingCarModel,
-      carColor || newCarColor,
-      "", // ナンバープレート（削除済み）
-      currentCourse || "",
-      newCarModel || "",
-      newCarColor || "",
-      "", // 新しいナンバープレート（削除済み）
-      newCourse || "",
-      "",
+      formatJapanDateTime(new Date()), // A列
+      operation, // B列
+      matchingCustomer.referenceId || "", // C列
+      store, // D列
+      `${familyName} ${givenName}`, // E列
+      email, // F列
+      operation === "メールアドレス変更" ? newEmail : "", // G列
+      phone, // H列
+      carModel || newCarModel || existingCarModel, // I列
+      carColor || newCarColor, // J列
+      "", // K列: ナンバー（削除済み）
+      currentCourse || "", // L列
+      newCarModel || "", // M列
+      newCarColor || "", // N列
+      "", // O列: 新しいナンバープレート（削除済み）
+      newCourse || "", // P列
+      "", // Q列: その他（submit-inquiryで利用）
+      "", // R列: 空白
+      membershipNumber || "", // S列: 会員番号
     ]
     await appendToSheet([sheetData])
 

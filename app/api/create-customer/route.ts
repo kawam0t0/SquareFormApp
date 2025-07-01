@@ -118,6 +118,8 @@ export async function POST(request: Request) {
               "", // O列: 新しいナンバープレート（削除済み）
               "", // P列: 新しいコース
               "", // Q列: その他
+              "", // R列: 空白
+              "", // S列: 会員番号 (入会時は空)
             ],
           ])
           console.log("Google Sheetsにデータが追加されました")

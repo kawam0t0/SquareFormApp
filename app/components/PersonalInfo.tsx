@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { User, Mail, Phone } from "lucide-react"
+import { User, Mail, Phone, Camera } from "lucide-react" // Cameraアイコンを追加
 import { useState } from "react"
 import Image from "next/image"
 import type { BaseFormProps } from "../types"
@@ -12,6 +12,7 @@ export function PersonalInfo({ formData, updateFormData, nextStep, prevStep }: B
     givenName: "",
     email: "",
     phone: "",
+    membershipNumber: "", // 会員番号のエラー状態を追加
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -21,6 +22,7 @@ export function PersonalInfo({ formData, updateFormData, nextStep, prevStep }: B
       givenName: "",
       email: "",
       phone: "",
+      membershipNumber: "",
     }
 
     if (!/^[ァ-ヶー　]+$/.test(formData.familyName)) {
@@ -39,11 +41,26 @@ export function PersonalInfo({ formData, updateFormData, nextStep, prevStep }: B
       newErrors.phone = "電話番号は10桁または11桁の半角数字で入力してください。"
     }
 
+    // 会員番号のバリデーション（入会以外の場合のみ）
+    if (formData.operation !== "入会" && formData.membershipNumber) {
+      if (!/^[a-zA-Z0-9]+$/.test(formData.membershipNumber)) {
+        newErrors.membershipNumber = "会員番号は半角英数字で入力してください。"
+      }
+    }
+
     setErrors(newErrors)
 
     if (Object.values(newErrors).every((error) => error === "")) {
       nextStep()
     }
+  }
+
+  // バーコードリーダー起動のプレースホルダー関数
+  const handleBarcodeScan = () => {
+    alert("バーコードリーダー機能は現在開発中です。手動で会員番号を入力してください。")
+    // ここにバーコードリーダーを起動するロジックを実装します
+    // 例: モーダルを開き、カメラアクセスを要求し、zxing-js/library などでバーコードをスキャン
+    // スキャン成功後、updateFormData({ membershipNumber: scannedData }) を呼び出す
   }
 
   return (
@@ -68,6 +85,36 @@ export function PersonalInfo({ formData, updateFormData, nextStep, prevStep }: B
       )}
 
       <div className="form-grid">
+        {/* 会員番号の入力項目（入会以外の場合のみ表示） */}
+        {formData.operation !== "入会" && (
+          <div>
+            <label htmlFor="membershipNumber" className="form-label flex items-center gap-2">
+              <User className="h-6 w-6" />
+              会員番号
+            </label>
+            <div className="relative flex items-center">
+              <input
+                id="membershipNumber"
+                type="text"
+                placeholder="半角英数字"
+                value={formData.membershipNumber || ""}
+                onChange={(e) => updateFormData({ membershipNumber: e.target.value })}
+                required
+                className="form-input pr-12" // カメラボタンのスペースを確保
+              />
+              <button
+                type="button"
+                onClick={handleBarcodeScan}
+                className="absolute right-2 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                aria-label="バーコードをスキャン"
+              >
+                <Camera className="h-5 w-5 text-gray-600" />
+              </button>
+            </div>
+            {errors.membershipNumber && <p className="text-red-500 text-sm mt-2">{errors.membershipNumber}</p>}
+          </div>
+        )}
+
         <div>
           <label htmlFor="familyName" className="form-label flex items-center gap-2">
             <User className="h-6 w-6" />姓

@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       inquiryDetails,
       inquiryType,
       cancellationReasons,
+      membershipNumber, // 会員番号を追加
     } = formData
 
     // Generate a new reference ID
@@ -48,23 +49,25 @@ export async function POST(request: Request) {
     // Google Sheetsにデータを追加
     await appendToSheet([
       [
-        formatJapanDateTime(new Date()),
-        operation,
-        referenceId,
-        store,
-        `${familyName} ${givenName}`,
-        email,
-        "",
-        phone,
-        carModel,
-        carColor,
-        "", // ナンバープレート（削除済み）
-        "",
-        "",
-        "",
-        "", // 新しいナンバープレート（削除済み）
-        "",
+        formatJapanDateTime(new Date()), // A列
+        operation, // B列
+        referenceId, // C列
+        store, // D列
+        `${familyName} ${givenName}`, // E列
+        email, // F列
+        "", // G列: 新しいメールアドレス
+        phone, // H列
+        carModel, // I列
+        carColor, // J列
+        "", // K列: ナンバー（削除済み）
+        "", // L列
+        "", // M列
+        "", // N列
+        "", // O列: 新しいナンバープレート（削除済み）
+        "", // P列
         combinedInquiry, // Q列：プルダウンの内容、解約理由、お問い合わせ内容を結合
+        "", // R列: 空白
+        membershipNumber || "", // S列: 会員番号
       ],
     ])
 
