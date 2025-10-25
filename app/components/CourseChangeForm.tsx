@@ -18,7 +18,7 @@ const courses = [
   },
   {
     id: "1480",
-    name: "スーパーャンプーナイアガラ",
+    name: "スーパーシャンプーナイアガラ",
     price: "1480円",
   },
   {
@@ -48,7 +48,14 @@ export function CourseChangeForm({ formData, updateFormData, nextStep, prevStep 
     setSelectedCourse: (course: string) => void,
   ) => (
     <div className="space-y-4">
-      <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
+      <div className="flex flex-col gap-1">
+        <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
+        {title === "新ご利用コース" && (
+          <p className="text-xs text-gray-600">
+            ※前橋50号店/伊勢崎韮塚店/足利緑町店はスーパーシャンプーナイアガラ/セラミックコーティングタートルシェルの取り扱いはございません
+          </p>
+        )}
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {courses.map((course) => (
           <div
