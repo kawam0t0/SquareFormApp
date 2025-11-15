@@ -46,11 +46,23 @@ export async function POST(request: Request) {
     let emailStatus = "❌ 送信失敗"
     try {
       console.log("確認メール送信を開始します...")
+      const emailDetails: any = {}
+      
+      if (operation === "各種手続き") {
+        if (formData.inquiryType) {
+          emailDetails.inquiryType = formData.inquiryType
+        }
+        if (formData.inquiryDetails) {
+          emailDetails.inquiryDetails = formData.inquiryDetails
+        }
+      }
+      
       await sendInquiryConfirmationEmail(
         `${familyName} ${givenName}`,
         email,
         operation,
-        "", // reference_idは空文字
+        formData.store || "",
+        emailDetails,
       )
       emailStatus = "✅ 送信完了"
       console.log("✅ 問い合わせ確認メールを送信しました")
