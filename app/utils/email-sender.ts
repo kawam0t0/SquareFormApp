@@ -26,7 +26,7 @@ export async function sendInquiryConfirmationEmail(
     newCourse?: string
     newEmail?: string
   },
-): Promise<void> {
+): Promise<boolean> {
   const transporter = createTransporter()
 
   // 現在の年を取得
@@ -105,7 +105,7 @@ export async function sendInquiryConfirmationEmail(
     if (details.inquiryDetails) {
       detailsHtml += `
         <div style="margin: 15px 0; padding: 15px; background-color: #f8f9fa; border-radius: 4px; border: 1px solid #dee2e6;">
-          <p style="margin: 0 0 10px; font-size: 15px; font-weight: 600; color: #0062E6;">その他ご意見・ご要望:</p>
+          <p style="margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #0062E6;">その他ご意見・ご要望:</p>
           <p style="margin: 0; font-size: 15px; white-space: pre-wrap; color: #333; line-height: 1.8;">${details.inquiryDetails}</p>
         </div>
       `
@@ -206,7 +206,7 @@ export async function sendConfirmationEmail(
   course: string,
   store: string,
   referenceId: string,
-): Promise<void> {
+): Promise<boolean> {
   const transporter = createTransporter()
 
   // コース名から金額を除去する
