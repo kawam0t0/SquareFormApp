@@ -16,7 +16,16 @@ export async function sendInquiryConfirmationEmail(
   email: string,
   operation: string,
   store: string,
-  details?: { inquiryType?: string; inquiryDetails?: string; withdrawalReason?: string[] },
+  details?: {
+    inquiryType?: string
+    inquiryDetails?: string
+    withdrawalReason?: string[]
+    newCarModel?: string
+    newCarColor?: string
+    currentCourse?: string
+    newCourse?: string
+    newEmail?: string
+  },
 ): Promise<void> {
   const transporter = createTransporter()
 
