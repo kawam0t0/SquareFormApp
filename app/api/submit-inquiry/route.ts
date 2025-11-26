@@ -211,7 +211,15 @@ export async function POST(request: Request) {
     let emailStatus = "❌ 送信失敗"
     try {
       console.log("確認メール送信中...")
-      await sendInquiryConfirmationEmail(`${familyName} ${givenName}`, email, operation, store, referenceId)
+      if (operation === "各種手続き") {
+        await sendInquiryConfirmationEmail(`${familyName} ${givenName}`, email, operation, store, {
+          inquiryType: procedureVal,
+          inquiryDetails: inquiryDetails,
+          withdrawalReason: reasonsMerged,
+        })
+      } else {
+        await sendInquiryConfirmationEmail(`${familyName} ${givenName}`, email, operation, store)
+      }
       emailStatus = "✅ 送信完了"
       console.log("問い合わせ確認メールを送信しました")
     } catch (emailError) {
