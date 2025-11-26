@@ -59,21 +59,21 @@ export async function sendInquiryConfirmationEmail(
   // 詳細情報の表示を準備
   let detailsHtml = ""
 
-  if (operation === "登録車両変更" && details.newCarModel && details.newCarColor) {
+  if (operation === "登録車両変更" && details && details.newCarModel && details.newCarColor) {
     detailsHtml += `
       <p style="margin: 0 0 12px; font-size: 15px;"><strong style="display: inline-block; width: 120px; color: #0062E6;">新しい車種:</strong> ${details.newCarModel}</p>
       <p style="margin: 0 0 12px; font-size: 15px;"><strong style="display: inline-block; width: 120px; color: #0062E6;">新しい車の色:</strong> ${details.newCarColor}</p>
     `
-  } else if (operation === "洗車コース変更" && details.currentCourse && details.newCourse) {
+  } else if (operation === "洗車コース変更" && details && details.currentCourse && details.newCourse) {
     detailsHtml += `
       <p style="margin: 0 0 12px; font-size: 15px;"><strong style="display: inline-block; width: 120px; color: #0062E6;">現在のコース:</strong> ${details.currentCourse}</p>
       <p style="margin: 0 0 12px; font-size: 15px;"><strong style="display: inline-block; width: 120px; color: #0062E6;">新しいコース:</strong> ${details.newCourse}</p>
     `
-  } else if (operation === "メールアドレス変更" && details.newEmail) {
+  } else if (operation === "メールアドレス変更" && details && details.newEmail) {
     detailsHtml += `
       <p style="margin: 0 0 12px; font-size: 15px;"><strong style="display: inline-block; width: 120px; color: #0062E6;">新しいメールアドレス:</strong> ${details.newEmail}</p>
     `
-  } else if (operation === "各種手続き") {
+  } else if (operation === "各種手続き" && details) {
     if (details.inquiryType) {
       detailsHtml += `
         <p style="margin: 0 0 12px; font-size: 15px;"><strong style="display: inline-block; width: 150px; color: #0062E6;">お問い合わせの種類:</strong> ${details.inquiryType}</p>
