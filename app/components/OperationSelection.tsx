@@ -15,12 +15,12 @@ const allOperations = [
 ]
 
 const stores = [
-  "SPLASH'N'GO!前橋50号店",
-  "SPLASH'N'GO!伊勢崎韮塚店",
-  "SPLASH'N'GO!高崎棟高店",
-  "SPLASH'N'GO!足利緑町店",
-  "SPLASH'N'GO!新前橋店",
-  "SPLASH'N'GO!太田新田店",
+  { value: "SPLASH'N'GO!前橋50号店", label: "前橋50号店" },
+  { value: "SPLASH'N'GO!伊勢崎韮塚店", label: "伊勢崎韮塚店" },
+  { value: "SPLASH'N'GO!高崎棟高店", label: "高崎棟高店" },
+  { value: "SPLASH'N'GO!足利緑町店", label: "足利緑町店" },
+  { value: "SPLASH'N'GO!新前橋店", label: "新前橋店" },
+  { value: "SPLASH'N'GO!太田新田店", label: "太田新田店" },
 ]
 
 export function OperationSelection({ formData, updateFormData, nextStep }: BaseFormProps) {
@@ -55,8 +55,8 @@ export function OperationSelection({ formData, updateFormData, nextStep }: BaseF
           >
             <option value="">店舗を選択してください</option>
             {stores.map((store) => (
-              <option key={store} value={store} className="py-2">
-                {store}
+              <option key={store.value} value={store.value} className="py-2">
+                {store.label}
               </option>
             ))}
           </select>
