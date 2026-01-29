@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+
 import { useState } from "react"
 import {
   MapPin,
@@ -14,10 +16,9 @@ import {
   Calendar,
   Gift,
 } from "lucide-react"
-import Link from "next/link"
 import type React from "react"
 import type { FormData } from "../types"
-import { isCampaignValid } from "../utils/campaign-utils"
+import TermsDialog from "./TermsDialog"
 
 interface ConfirmationProps {
   formData: FormData
@@ -45,6 +46,7 @@ export function Confirmation({ formData, prevStep, submitForm }: ConfirmationPro
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isAgreed, setIsAgreed] = useState(false)
+  const [isTermsDialogOpen, setIsTermsDialogOpen] = useState(false)
 
   const handleSubmit = async () => {
     if (isSubmitting || !isAgreed) return
@@ -73,14 +75,6 @@ export function Confirmation({ formData, prevStep, submitForm }: ConfirmationPro
           ? "2980円"
           : ""
 
-  // キャンペーン適用チェック
-  const isCampaignApplied = isCampaignValid(
-    formData.campaignCode || "",
-    formData.store,
-    formData.operation,
-    formData.course,
-  )
-
   return (
     <div className="space-y-6">
       {error && (
@@ -97,16 +91,6 @@ export function Confirmation({ formData, prevStep, submitForm }: ConfirmationPro
 
       <div className="bg-blue-50/80 rounded-2xl p-6 space-y-6">
         <ConfirmationItem icon={<MapPin className="w-6 h-6" />} label="入会店舗" value={formData.store} />
-
-        {/* キャンペーンコード表示 */}
-        {formData.campaignCode && (
-          <ConfirmationItem
-            icon={<Gift className="w-6 h-6" />}
-            label="キャンペーンコード"
-            value={formData.campaignCode}
-          />
-        )}
-
         <ConfirmationItem icon={<User className="w-6 h-6" />} label="姓" value={`${formData.familyName}`} />
         <ConfirmationItem icon={<User className="w-6 h-6" />} label="名" value={formData.givenName} />
         <ConfirmationItem icon={<Mail className="w-6 h-6" />} label="メールアドレス" value={formData.email} />
@@ -128,23 +112,22 @@ export function Confirmation({ formData, prevStep, submitForm }: ConfirmationPro
               label="選択されたコース"
               value={formData.course}
             />
-
-            {/* キャンペーン適用時の特別表示 */}
-            {isCampaignApplied && (
-              <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
+            {/* キャンペーン情報の表示 */}
+            {formData.store === "SPLASH'N'GO!新前橋店" && formData.campaignCode === "SPGO418" && (
+              <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border-2 border-yellow-200">
                 <div className="flex">
-                  <Gift className="w-5 h-5 text-red-500 flex-shrink-0" />
+                  <Gift className="w-5 h-5 text-yellow-500 flex-shrink-0" />
                   <div className="ml-3">
-                    <p className="text-sm text-red-700 font-medium">🎉 キャンペーン適用</p>
-                    <p className="text-sm text-red-600 mt-1">
-                      プレミアムスタンダードが2ヶ月間無料！3ヶ月目から月額980円が適用されます。
+                    <p className="text-sm text-yellow-700 font-medium">🎉 キャンペーン適用中！</p>
+                    <p className="text-sm text-yellow-600 mt-1">
+                      プレミアムスタンダードが2ヶ月無料！3ヶ月目から月額980円となります。
                     </p>
+                    <p className="text-xs text-yellow-600 mt-1">キャンペーンコード: {formData.campaignCode}</p>
                   </div>
                 </div>
               </div>
             )}
-
-            {formData.enableSubscription && !isCampaignApplied && (
+            {formData.enableSubscription && (
               <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-100">
                 <div className="flex">
                   <Calendar className="w-5 h-5 text-green-500 flex-shrink-0" />
@@ -221,46 +204,48 @@ export function Confirmation({ formData, prevStep, submitForm }: ConfirmationPro
         )}
       </div>
 
-      <div className="flex items-start space-x-2 mt-6">
-        <input
-          type="checkbox"
-          id="agreement"
-          checked={isAgreed}
-          onChange={(e) => setIsAgreed(e.target.checked)}
-          className="mt-1 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-        />
-        <label htmlFor="agreement" className="text-sm text-gray-700">
-          <span>私は</span>
-          <Link
-            href="https://drive.google.com/file/d/1KMf0TG7SIyCtvYiVZEqh-XEY4Jg5e-Lr/view"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline font-medium"
+      <div className="mt-6 space-y-4">
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-gray-700 mb-3">
+            {isAgreed ? (
+              <span className="flex items-center text-green-600 font-medium">
+                <CheckCircle className="w-5 h-5 mr-2" />
+                利用規約に同意しました
+              </span>
+            ) : (
+              <span>
+                サービスをご利用いただくには、利用規約への同意が必要です。
+              </span>
+            )}
+          </p>
+          <button
+            type="button"
+            onClick={() => setIsTermsDialogOpen(true)}
+            className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${
+              isAgreed
+                ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-blue-600 text-white hover:bg-blue-700 shadow-md"
+            }`}
           >
-            会員規約
-          </Link>
-          <span>および</span>
-          <Link
-            href="https://drive.google.com/file/d/1FASj-HEA44iBE4tgfvAbCpj8sMW2PJqy/view"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline font-medium"
-          >
-            プライバシーポリシー
-          </Link>
-          <span>を読み、理解し、これらに基づいて利用契約を締結することに同意します。</span>
-          {formData.enableSubscription && !isCampaignApplied && (
-            <span className="block mt-2 text-red-600 font-medium">
-              また、定期支払いを選択したことにより、毎月自動的に料金が引き落とされることに同意します。
-            </span>
+            {isAgreed ? "利用規約を再確認する" : "利用規約を確認して同意する"}
+          </button>
+          {formData.enableSubscription && (
+            <p className="mt-3 text-xs text-red-600 font-medium">
+              ※
+              定期支払いを選択したことにより、毎月自動的に料金が引き落とされることに同意します。
+            </p>
           )}
-          {isCampaignApplied && (
-            <span className="block mt-2 text-red-600 font-medium">
-              また、キャンペーン適用により2ヶ月無料期間終了後、3ヶ月目から通常料金が適用されることに同意します。
-            </span>
-          )}
-        </label>
+        </div>
       </div>
+
+      <TermsDialog
+        isOpen={isTermsDialogOpen}
+        onClose={() => setIsTermsDialogOpen(false)}
+        onAgree={() => {
+          setIsAgreed(true)
+          setIsTermsDialogOpen(false)
+        }}
+      />
 
       <div className="grid grid-cols-2 gap-4 mt-8">
         <button
