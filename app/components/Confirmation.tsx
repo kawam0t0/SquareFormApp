@@ -19,6 +19,7 @@ import {
 import type React from "react"
 import type { FormData } from "../types"
 import TermsDialog from "./TermsDialog"
+import PrivacyPolicyDialog from "./PrivacyPolicyDialog"
 
 interface ConfirmationProps {
   formData: FormData
@@ -45,8 +46,12 @@ const ConfirmationItem = ({ icon, label, value }: ConfirmationItemProps) => (
 export function Confirmation({ formData, prevStep, submitForm }: ConfirmationProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isAgreed, setIsAgreed] = useState(false)
+  const [isTermsAgreed, setIsTermsAgreed] = useState(false)
+  const [isPrivacyAgreed, setIsPrivacyAgreed] = useState(false)
   const [isTermsDialogOpen, setIsTermsDialogOpen] = useState(false)
+  const [isPrivacyDialogOpen, setIsPrivacyDialogOpen] = useState(false)
+  
+  const isAgreed = isTermsAgreed && isPrivacyAgreed
 
   const handleSubmit = async () => {
     if (isSubmitting || !isAgreed) return
@@ -205,9 +210,10 @@ export function Confirmation({ formData, prevStep, submitForm }: ConfirmationPro
       </div>
 
       <div className="mt-6 space-y-4">
+        {/* 利用規約 */}
         <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
           <p className="text-sm text-gray-700 mb-3">
-            {isAgreed ? (
+            {isTermsAgreed ? (
               <span className="flex items-center text-green-600 font-medium">
                 <CheckCircle className="w-5 h-5 mr-2" />
                 利用規約に同意しました
@@ -222,28 +228,67 @@ export function Confirmation({ formData, prevStep, submitForm }: ConfirmationPro
             type="button"
             onClick={() => setIsTermsDialogOpen(true)}
             className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${
-              isAgreed
+              isTermsAgreed
                 ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 : "bg-blue-600 text-white hover:bg-blue-700 shadow-md"
             }`}
           >
-            {isAgreed ? "利用規約を再確認する" : "利用規約を確認して同意する"}
+            {isTermsAgreed ? "利用規約を再確認する" : "利用規約を確認して同意する"}
           </button>
-          {formData.enableSubscription && (
-            <p className="mt-3 text-xs text-red-600 font-medium">
+        </div>
+
+        {/* プライバシーポリシー */}
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-gray-700 mb-3">
+            {isPrivacyAgreed ? (
+              <span className="flex items-center text-green-600 font-medium">
+                <CheckCircle className="w-5 h-5 mr-2" />
+                プライバシーポリシーに同意しました
+              </span>
+            ) : (
+              <span>
+                個人情報の取り扱いについて、プライバシーポリシーへの同意が必要です。
+              </span>
+            )}
+          </p>
+          <button
+            type="button"
+            onClick={() => setIsPrivacyDialogOpen(true)}
+            className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${
+              isPrivacyAgreed
+                ? "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                : "bg-blue-600 text-white hover:bg-blue-700 shadow-md"
+            }`}
+          >
+            {isPrivacyAgreed ? "プライバシーポリシーを再確認する" : "プライバシーポリシーを確認して同意する"}
+          </button>
+        </div>
+
+        {formData.enableSubscription && (
+          <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4">
+            <p className="text-sm text-red-600 font-medium">
               ※
               定期支払いを選択したことにより、毎月自動的に料金が引き落とされることに同意します。
             </p>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <TermsDialog
         isOpen={isTermsDialogOpen}
         onClose={() => setIsTermsDialogOpen(false)}
         onAgree={() => {
-          setIsAgreed(true)
+          setIsTermsAgreed(true)
           setIsTermsDialogOpen(false)
+        }}
+      />
+
+      <PrivacyPolicyDialog
+        isOpen={isPrivacyDialogOpen}
+        onClose={() => setIsPrivacyDialogOpen(false)}
+        onAgree={() => {
+          setIsPrivacyAgreed(true)
+          setIsPrivacyDialogOpen(false)
         }}
       />
 
