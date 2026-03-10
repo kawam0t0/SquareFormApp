@@ -24,7 +24,7 @@ import PrivacyPolicyDialog from "./PrivacyPolicyDialog"
 interface ConfirmationProps {
   formData: FormData
   prevStep: () => void
-  submitForm: () => void
+  submitForm: () => Promise<void>
 }
 
 interface ConfirmationItemProps {
@@ -46,23 +46,61 @@ const ConfirmationItem = ({ icon, label, value }: ConfirmationItemProps) => (
 export function Confirmation({ formData, prevStep, submitForm }: ConfirmationProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [unmatchedFields, setUnmatchedFields] = useState<string[]>([])
   const [isTermsAgreed, setIsTermsAgreed] = useState(false)
   const [isPrivacyAgreed, setIsPrivacyAgreed] = useState(false)
   const [isTermsDialogOpen, setIsTermsDialogOpen] = useState(false)
   const [isPrivacyDialogOpen, setIsPrivacyDialogOpen] = useState(false)
-  
+
   const isAgreed = isTermsAgreed && isPrivacyAgreed
+
+  // 顧客検索が必要な操作（変更系）
+  const CUSTOMER_SEARCH_OPERATIONS = [
+    "登録車両変更",
+    "洗車コース変更",
+    "クレジットカード情報変更",
+    "メールアドレス変更",
+  ]
+  const requiresCustomerSearch = CUSTOMER_SEARCH_OPERATIONS.includes(formData.operation)
 
   const handleSubmit = async () => {
     if (isSubmitting || !isAgreed) return
     setIsSubmitting(true)
-    setError(null) // エラーをリセット
+    setError(null)
+    setUnmatchedFields([])
 
     try {
+      if (requiresCustomerSearch) {
+        // 変更系操作：update-customerだけで完結（submitFormは呼ばない）
+        const response = await fetch("/api/update-customer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          if (data.unmatchedFields && Array.isArray(data.unmatchedFields)) {
+            setUnmatchedFields(data.unmatchedFields)
+            setError("unmatched")
+          } else {
+            setError(data.message || data.error || "エラーが発生しました。")
+          }
+          return
+        }
+
+        // update-customer成功 → submitFormは呼ばない（二重処理防止）
+        // サンキューページへの遷移はsubmitFormに頼らず直接行う
+        window.location.href = "/thank-you"
+        return
+      }
+
+      // 入会・その他：元のsubmitFormを呼ぶ（create-customer等）
       await submitForm()
-    } catch (err) {
+    } catch (err: any) {
       console.error("フォーム送信エラー:", err)
-      setError(err instanceof Error ? err.message : "エラーが発生しました。お手数ですが、最初からやり直してください。")
+      setError("エラーが発生しました。お手数ですが、最初からやり直してください。")
     } finally {
       setIsSubmitting(false)
     }
@@ -83,10 +121,35 @@ export function Confirmation({ formData, prevStep, submitForm }: ConfirmationPro
   return (
     <div className="space-y-6">
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-          <strong className="font-bold">エラー: </strong>
-          <span className="block sm:inline">{error}</span>
-          <p className="mt-2 text-sm">お手数ですが、最初からやり直してください。</p>
+        <div className="bg-red-50 border-2 border-red-400 text-red-800 px-5 py-4 rounded-xl mb-4" role="alert">
+          {error === "unmatched" && unmatchedFields.length > 0 ? (
+            <>
+              <p className="font-bold text-base mb-2">
+                以下の項目に不備があるようです。
+              </p>
+              <ul className="list-disc list-inside mb-3 space-y-1">
+                {unmatchedFields.map((field) => (
+                  <li key={field} className="font-semibold">
+                    {field}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-sm">
+                お困りの場合は、こちらの電話番号までお願いします。
+              </p>
+              <a
+                href="tel:05017462409"
+                className="text-lg font-bold mt-1 tracking-wide text-blue-700 underline underline-offset-2 hover:text-blue-900"
+              >
+                050-1746-2409
+              </a>
+            </>
+          ) : (
+            <>
+              <p className="font-bold">{error}</p>
+              <p className="text-sm mt-1">お手数ですが、最初からやり直してください。</p>
+            </>
+          )}
         </div>
       )}
       <div className="text-center space-y-2">

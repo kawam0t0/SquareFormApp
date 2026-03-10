@@ -110,7 +110,7 @@ export function NewPaymentInfo({ formData, updateFormData, nextStep, prevStep }:
       )}
 
       <div className="pt-4 grid grid-cols-2 gap-3">
-        <button type="button" onClick={prevStep} className="btn btn-secondary">
+        <button type="button" onClick={() => { prevStep(); prevStep() }} className="btn btn-secondary">
           戻る
         </button>
         <button type="submit" disabled={isLoading || !card} className="btn btn-primary">

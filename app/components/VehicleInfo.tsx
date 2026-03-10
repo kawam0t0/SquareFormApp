@@ -1,14 +1,31 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Car, Palette } from "lucide-react"
 import type { BaseFormProps } from "../types"
 
-const carColors = ["白系", "黒系", "赤系", "青系", "黄系", "紫系", "緑系", "茶系", "紺系", "銀系", "灰系"]
+const carColors = ["白系", "黒系", "赤系", "青系", "黄系", "紫系", "緑系", "茶系", "紺系", "灰系", "銀系"]
+
+// 車種・車の色の入力が不要な操作
+const SKIP_VEHICLE_OPERATIONS = ["クレジットカード情報変更", "メールアドレス変更", "洗車コース変更"]
 
 export function VehicleInfo({ formData, updateFormData, nextStep, prevStep }: BaseFormProps) {
   const [carModelError, setCarModelError] = useState<string>("")
+  const skipped = useRef(false)
+
+  // スキップ対象の操作の場合は1度だけ次のステップへ
+  useEffect(() => {
+    if (SKIP_VEHICLE_OPERATIONS.includes(formData.operation) && !skipped.current) {
+      skipped.current = true
+      nextStep()
+    }
+  }, [])
+
+  // スキップ対象の場合は何も描画しない
+  if (SKIP_VEHICLE_OPERATIONS.includes(formData.operation)) {
+    return null
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,7 +35,6 @@ export function VehicleInfo({ formData, updateFormData, nextStep, prevStep }: Ba
       return
     }
 
-    // 車種のバリデーション - 全角カタカナまたは半角ローマ字を許可
     if (!/^[ァ-ヶー　a-zA-Z0-9\s-]+$/.test(formData.carModel)) {
       setCarModelError("車種は全角カタカナまたはローマ字で入力してください。")
       return

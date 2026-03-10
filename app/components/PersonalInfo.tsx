@@ -1,49 +1,41 @@
 "use client"
 
 import type React from "react"
-import { User, Mail, Phone, Gift } from "lucide-react"
+import { User, Mail, Phone, Tag, Hash } from "lucide-react"
 import { useState } from "react"
 import Image from "next/image"
 import type { BaseFormProps } from "../types"
 
+// 入会以外の操作（既存顧客が必要な操作）
+const EXISTING_CUSTOMER_OPERATIONS = [
+  "登録車両変更",
+  "洗車コース変更",
+  "クレジットカード情報変更",
+  "メールアドレス変更",
+  "各種手続き",
+]
+
 export function PersonalInfo({ formData, updateFormData, nextStep, prevStep }: BaseFormProps) {
+  const requiresReferenceId = EXISTING_CUSTOMER_OPERATIONS.includes(formData.operation)
+
   const [errors, setErrors] = useState({
-    campaignCode: "",
     familyName: "",
     givenName: "",
     email: "",
     phone: "",
+    campaignCode: "",
+    referenceId: "",
   })
-
-  // キャンペーン期間チェック（8/1~8/31）
-  const isCampaignPeriod = () => {
-    const now = new Date()
-    const currentYear = now.getFullYear()
-    const campaignStart = new Date(currentYear, 7, 1) // 8月1日（月は0から始まる）
-    const campaignEnd = new Date(currentYear, 7, 31, 23, 59, 59) // 8月31日
-    return now >= campaignStart && now <= campaignEnd
-  }
-
-  // キャンペーン対象かチェック
-  const isCampaignEligible = () => {
-    return formData.operation === "入会" && formData.store === "SPLASH'N'GO!新前橋店"
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const newErrors = {
-      campaignCode: "",
       familyName: "",
       givenName: "",
       email: "",
       phone: "",
-    }
-
-    // キャンペーンコードのバリデーション（キャンペーン対象の場合のみ）
-    if (isCampaignEligible() && formData.campaignCode) {
-      if (!/^[A-Za-z0-9]+$/.test(formData.campaignCode)) {
-        newErrors.campaignCode = "キャンペーンコードは半角英数字で入力してください。"
-      }
+      campaignCode: "",
+      referenceId: "",
     }
 
     if (!/^[ァ-ヶー　]+$/.test(formData.familyName)) {
@@ -62,17 +54,30 @@ export function PersonalInfo({ formData, updateFormData, nextStep, prevStep }: B
       newErrors.phone = "電話番号は10桁または11桁の半角数字で入力してください。"
     }
 
+    // リファランスIDのバリデーション（既存顧客操作の場合は必須）
+    if (requiresReferenceId) {
+      if (!formData.referenceId || formData.referenceId.trim() === "") {
+        newErrors.referenceId = "会員番号（リファランスID）は必須です。会員カードをご確認ください。"
+      } else if (!/^[a-zA-Z0-9]+$/.test(formData.referenceId)) {
+        newErrors.referenceId = "リファランスIDは半角英数字で入力してください。"
+      }
+    }
+
+    // キャンペーンコードのバリデーション
+    if (
+      formData.operation === "入会" &&
+      formData.store === "SPLASH'N'GO!新前橋店" &&
+      formData.campaignCode &&
+      !/^[A-Z0-9]+$/.test(formData.campaignCode)
+    ) {
+      newErrors.campaignCode = "キャンペーンコードは半角英数字で入力してください。"
+    }
+
     setErrors(newErrors)
 
     if (Object.values(newErrors).every((error) => error === "")) {
       nextStep()
     }
-  }
-
-  const handleCampaignCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // 半角英数字のみ許可
-    const value = e.target.value.replace(/[^A-Za-z0-9]/g, "")
-    updateFormData({ campaignCode: value })
   }
 
   return (
@@ -97,32 +102,69 @@ export function PersonalInfo({ formData, updateFormData, nextStep, prevStep }: B
           </div>
         )}
 
-        {/* キャンペーンコード入力欄（新前橋店の入会のみ表示） */}
-        {isCampaignEligible() && (
-          <div className="mb-8">
-            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl p-6">
-              <div className="flex items-center gap-2 mb-4">
-              </div>
-              <p className="text-sm text-yellow-700 mb-4">キャンペーンコードをお持ちの方は下記にご入力ください。</p>
-              <label htmlFor="campaignCode" className="form-label flex items-center gap-2">
-                <Gift className="h-5 w-5 text-yellow-600" />
-                キャンペーンコード
-                <span className="text-sm font-normal text-gray-500 ml-2">(半角英数字で入力してください)</span>
-              </label>
-              <input
-                id="campaignCode"
-                type="text"
-                value={formData.campaignCode}
-                onChange={handleCampaignCodeChange}
-                className="form-input font-mono text-lg tracking-wider"
-                maxLength={20}
-              />
-              {errors.campaignCode && <p className="text-red-500 text-sm mt-2">{errors.campaignCode}</p>}
+        {/* キャンペーンコード入力欄（新前橋店かつ入会の場合のみ表示） */}
+        {formData.operation === "入会" && formData.store === "SPLASH'N'GO!新前橋店" && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl">
+            <div className="flex items-center gap-2 mb-3">
+              <Tag className="h-6 w-6 text-yellow-600" />
+              <span className="text-lg font-semibold text-yellow-800">キャンペーンコード</span>
+              <span className="text-sm bg-red-500 text-white px-2 py-1 rounded-full">期間限定 8/1-8/31</span>
             </div>
+            <input
+              id="campaignCode"
+              type="text"
+              placeholder="半角英数字でご入力ください（例：SPGO418）"
+              value={formData.campaignCode || ""}
+              onChange={(e) => {
+                // 半角英数字のみを許可
+                const value = e.target.value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase()
+                updateFormData({ campaignCode: value })
+              }}
+              className="w-full px-4 py-3 text-lg font-mono border-2 border-yellow-300 rounded-xl focus:border-yellow-500 focus:ring-4 focus:ring-yellow-200 bg-white"
+              maxLength={10}
+            />
+            {errors.campaignCode && <p className="text-sm text-red-500 mt-2">{errors.campaignCode}</p>}
+            <p className="text-sm text-yellow-700 mt-2">※ キャンペーンコードをお持ちの方のみご入力ください</p>
           </div>
         )}
 
         <div className="form-grid">
+          {/* リファランスID入力欄（既存顧客操作の場合のみ表示） */}
+          {requiresReferenceId && (
+            <div className="col-span-full">
+              {/* 会員カード説明画像 */}
+              <div className="mb-4 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+                <Image
+                  src="/images/reference-id-guide.jpg"
+                  alt="会員カードのリファランスID（No.）の場所を示す画像"
+                  width={1200}
+                  height={600}
+                  className="w-full h-auto"
+                />
+              </div>
+              <label htmlFor="referenceId" className="form-label flex items-center gap-2">
+                <Hash className="h-6 w-6" />
+                会員番号（リファランスID）
+                <span className="text-sm text-red-500 font-normal">※必須</span>
+              </label>
+              <p className="text-sm text-gray-500 mb-2">
+                会員カードのバーコード下またはカード裏面のNo.欄に記載されている番号を入力してください。
+              </p>
+              <input
+                id="referenceId"
+                type="text"
+                placeholder="半角英数字（例：10011234567890）"
+                value={formData.referenceId || ""}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^a-zA-Z0-9]/g, "")
+                  updateFormData({ referenceId: value })
+                }}
+                className="form-input font-mono"
+                maxLength={20}
+              />
+              {errors.referenceId && <p className="text-red-500 text-sm mt-2">{errors.referenceId}</p>}
+            </div>
+          )}
           <div>
             <label htmlFor="familyName" className="form-label flex items-center gap-2">
               <User className="h-6 w-6" />姓

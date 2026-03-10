@@ -9,6 +9,19 @@ const squareClient = new Client({
   environment: Environment.Production,
 })
 
+// 日本の電話番号をE164形式に変換（例: 08012345678 → +818012345678）
+function toE164Japan(phone?: string): string | undefined {
+  if (!phone) return undefined
+  const digits = phone.replace(/[^\d]/g, "")
+  if (digits.startsWith("0")) {
+    return "+81" + digits.slice(1)
+  }
+  if (digits.startsWith("81")) {
+    return "+" + digits
+  }
+  return "+" + digits
+}
+
 // 車種/色 → "車種/色"
 function buildCompanyName(model?: string, color?: string): string | undefined {
   const m = (model || "").trim()
@@ -43,33 +56,8 @@ export async function POST(request: Request) {
 
     const { familyName, givenName, email, operation } = formData
 
+    // メール送信は顧客検索成功後に行うため、ここでは初期化のみ
     let emailStatus = "❌ 送信失敗"
-    try {
-      console.log("確認メール送信を開始します...")
-      const emailDetails: any = {}
-      
-      if (operation === "各種手続き") {
-        if (formData.inquiryType) {
-          emailDetails.inquiryType = formData.inquiryType
-        }
-        if (formData.inquiryDetails) {
-          emailDetails.inquiryDetails = formData.inquiryDetails
-        }
-      }
-      
-      await sendInquiryConfirmationEmail(
-        `${familyName} ${givenName}`,
-        email,
-        operation,
-        formData.store || "",
-        emailDetails,
-      )
-      emailStatus = "✅ 送信完了"
-      console.log("✅ 問い合わせ確認メールを送信しました")
-    } catch (emailError) {
-      console.error("❌ メール送信中にエラーが発生しました:", emailError)
-      emailStatus = `❌ 送信失敗: ${emailError instanceof Error ? emailError.message : "不明なエラー"}`
-    }
 
     const {
       campaignCode,
@@ -90,6 +78,7 @@ export async function POST(request: Request) {
       procedureType,
       subOperation,
       storeName,
+      referenceId: inputReferenceId,
     } = formData
 
     const toArray = (v: any): string[] => {
@@ -118,63 +107,157 @@ export async function POST(request: Request) {
       operation === "メールアドレス変更" ||
       operation === "登録車両変更"
     ) {
-      console.log("Square上でメールアドレスによる顧客検索を実行中...")
+      console.log("Square上で顧客検索を実行中（リファランスID・メール・電話番号の全一致）...")
       try {
         const customersApi = squareClient.customersApi
-        const { result: searchResult } = await customersApi.searchCustomers({
-          query: {
-            filter: {
-              emailAddress: {
-                exact: email,
-              },
-            },
-          },
-        })
 
-        if (searchResult.customers && searchResult.customers.length > 0) {
-          const squareCustomer = searchResult.customers[0]
-          squareCustomerId = squareCustomer.id
-          console.log("Square上で顧客が見つかりました:", squareCustomerId)
-        } else {
-          console.log("Square上で顧客が見つかりませんでした")
-          if (operation !== "登録車両変更") {
-            return NextResponse.json(
-              {
-                success: false,
-                error: "Square上に該当するメールアドレスの顧客が見つかりませんでした",
-              },
-              { status: 404 },
-            )
-          }
+        // 1. リファランスIDで候補を取得
+        let byReferenceId: string[] = []
+        if (inputReferenceId) {
+          const { result: refResult } = await customersApi.searchCustomers({
+            query: { filter: { referenceId: { exact: inputReferenceId } } },
+          })
+          byReferenceId = (refResult.customers || []).map((c) => c.id as string)
         }
-      } catch (squareSearchError) {
-        console.error("Square顧客検索エラー:", squareSearchError)
-        if (operation !== "登録車両変更") {
+
+        // 2. メールアドレスで候補を取得
+        let byEmail: string[] = []
+        if (email) {
+          const { result: emailResult } = await customersApi.searchCustomers({
+            query: { filter: { emailAddress: { exact: email } } },
+          })
+          byEmail = (emailResult.customers || []).map((c) => c.id as string)
+        }
+
+        // 3. 電話番号で候補を取得（E164形式に変換）
+        let byPhone: string[] = []
+        const phoneE164 = toE164Japan(phone)
+        if (phoneE164) {
+          const { result: phoneResult } = await customersApi.searchCustomers({
+            query: { filter: { phoneNumber: { exact: phoneE164 } } },
+          })
+          byPhone = (phoneResult.customers || []).map((c) => c.id as string)
+        }
+
+        // 一致しない項目を特定
+        const unmatchedFields: string[] = []
+        if (inputReferenceId && byReferenceId.length === 0) unmatchedFields.push("会員番号（リファランスID）")
+        if (email && byEmail.length === 0) unmatchedFields.push("メールアドレス")
+        if (phoneE164 && byPhone.length === 0) unmatchedFields.push("電話番号")
+
+        if (unmatchedFields.length > 0) {
+          console.log("一致しない項目:", unmatchedFields.join("、"))
           return NextResponse.json(
             {
-              success: false,
-              error: "Square顧客検索中にエラーが発生しました",
+              error: "顧客情報が一致しませんでした",
+              unmatchedFields,
+              message: `以下の項目が登録情報と一致しませんでした：${unmatchedFields.join("、")}。入力内容をご確認ください。`,
             },
-            { status: 500 },
+            { status: 404 }
           )
         }
+
+        // 全て一致する顧客IDの絞り込み
+        let matchedId: string | null = null
+        if (inputReferenceId && email && phone) {
+          const intersection = byReferenceId.filter((id) => byEmail.includes(id) && byPhone.includes(id))
+          matchedId = intersection.length >= 1 ? intersection[0] : null
+        } else if (inputReferenceId && email) {
+          const intersection = byReferenceId.filter((id) => byEmail.includes(id))
+          matchedId = intersection.length >= 1 ? intersection[0] : null
+        } else if (inputReferenceId && phone) {
+          const intersection = byReferenceId.filter((id) => byPhone.includes(id))
+          matchedId = intersection.length >= 1 ? intersection[0] : null
+        } else if (email && phone) {
+          const intersection = byEmail.filter((id) => byPhone.includes(id))
+          matchedId = intersection.length >= 1 ? intersection[0] : null
+        } else if (inputReferenceId) {
+          matchedId = byReferenceId.length >= 1 ? byReferenceId[0] : null
+        } else if (email) {
+          matchedId = byEmail.length >= 1 ? byEmail[0] : null
+        } else if (phone) {
+          matchedId = byPhone.length >= 1 ? byPhone[0] : null
+        }
+
+        if (!matchedId) {
+          return NextResponse.json(
+            {
+              error: "顧客情報が一致しませんでした",
+              unmatchedFields: ["会員番号（リファランスID）", "メールアドレス", "電話番号"],
+              message: "入力された情報が全て一致する顧客が見つかりませんでした。入力内容をご確認ください。",
+            },
+            { status: 404 }
+          )
+        }
+
+        squareCustomerId = matchedId
+        console.log("Square上で顧客が見つかりました（全一致）:", squareCustomerId)
+      } catch (squareSearchError) {
+        console.error("Square顧客検索エラー:", squareSearchError)
+        return NextResponse.json(
+          { error: "顧客検索中にエラーが発生しました" },
+          { status: 500 }
+        )
       }
+    }
+
+    // 顧客検索成功後にメール送信
+    try {
+      console.log("確認メール送信を開始します...")
+      const emailDetails: any = {}
+      if (operation === "各種手続き") {
+        if (formData.inquiryType) emailDetails.inquiryType = formData.inquiryType
+        if (formData.inquiryDetails) emailDetails.inquiryDetails = formData.inquiryDetails
+        if (formData.withdrawalReason) emailDetails.withdrawalReason = formData.withdrawalReason
+      }
+      await sendInquiryConfirmationEmail(
+        `${familyName} ${givenName}`,
+        email,
+        operation,
+        formData.store || "",
+        emailDetails,
+      )
+      emailStatus = "✅ 送信完了"
+      console.log("✅ 問い合わせ確認メールを送信しました")
+    } catch (emailError) {
+      console.error("❌ メール送信中にエラーが発生しました:", emailError)
+      emailStatus = `❌ 送信失敗: ${emailError instanceof Error ? emailError.message : "不明なエラー"}`
     }
 
     if (squareCustomerId) {
       console.log(`Square顧客更新を開始します (操作: ${operation}, 顧客ID: ${squareCustomerId})`)
 
       const customersApi = squareClient.customersApi
+
+      // 既存顧客情報を取得して車両情報を保持する
+      let existingFamilyName: string | undefined
+      let existingCompanyName: string | undefined
+      try {
+        const { result: existingResult } = await customersApi.retrieveCustomer(squareCustomerId)
+        existingFamilyName = existingResult.customer?.familyName
+        existingCompanyName = existingResult.customer?.companyName
+      } catch (e) {
+        console.warn("既存顧客情報の取得に失敗:", e)
+      }
+
       let companyNameCandidate: string | undefined
       let familyNameForSquare: string | undefined
 
       if (operation === "登録車両変更") {
+        // 新車両情報で更新
         companyNameCandidate = buildCompanyName(newCarModel, newCarColor)
         familyNameForSquare = buildFamilyNameWithModel(familyName, newCarModel)
         console.log(`登録車両変更: 新車種=${newCarModel}, 新色=${newCarColor}`)
-      } else {
+      } else if (carModel && carColor) {
+        // 車両情報が入力されている場合は更新
         familyNameForSquare = buildFamilyNameWithModel(familyName, carModel)
         companyNameCandidate = buildCompanyName(carModel, carColor)
+      } else {
+        // 車両情報の入力がない場合（クレジットカード情報変更・メールアドレス変更・洗車コース変更）
+        // 既存の familyName / companyName をそのまま保持する
+        familyNameForSquare = existingFamilyName
+        companyNameCandidate = existingCompanyName
+        console.log(`${operation}: 車両情報なし。既存値を保持 familyName=${existingFamilyName}, companyName=${existingCompanyName}`)
       }
 
       const updatePayload: any = {
@@ -233,7 +316,7 @@ export async function POST(request: Request) {
 
         // 既存カードを無効化
         try {
-          const { result: listRes } = await cardsApi.listCards(undefined, undefined, false, undefined, squareCustomerId)
+          const { result: listRes } = await cardsApi.listCards(undefined, undefined, false, squareCustomerId)
           const existing = listRes.cards || []
           for (const c of existing) {
             if (c.id && c.id !== newCard?.id) {

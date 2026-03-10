@@ -2,7 +2,6 @@ import type React from "react"
 export interface FormData {
   operation: string
   store: string
-  campaignCode: string // キャンペーンコードを追加
   familyName: string
   givenName: string
   email: string
@@ -24,7 +23,7 @@ export interface FormData {
   newEmail: string
   isLimitedProductStore: boolean
   enableSubscription?: boolean // 定期請求オプションを追加
-  membershipNumber?: string // 会員番号を追加
+  campaignCode?: string // キャンペーンコードを追加
 }
 
 export interface BaseFormProps {
