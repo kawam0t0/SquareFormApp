@@ -234,8 +234,8 @@ export async function POST(request: Request) {
       let existingCompanyName: string | undefined
       try {
         const { result: existingResult } = await customersApi.retrieveCustomer(squareCustomerId)
-        existingFamilyName = existingResult.customer?.familyName
-        existingCompanyName = existingResult.customer?.companyName
+        existingFamilyName = existingResult.customer?.familyName ?? undefined
+        existingCompanyName = existingResult.customer?.companyName ?? undefined
       } catch (e) {
         console.warn("既存顧客情報の取得に失敗:", e)
       }
