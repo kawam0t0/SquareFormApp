@@ -29,7 +29,7 @@ export function EmailChangeForm({ formData, updateFormData, nextStep, prevStep }
       </div>
 
       <div className="pt-4 grid grid-cols-2 gap-3">
-        <button type="button" onClick={() => { prevStep(); prevStep() }} className="btn btn-secondary">
+        <button type="button" onClick={() => { prevStep?.(); prevStep?.() }} className="btn btn-secondary">
           戻る
         </button>
         <button type="submit" className="btn btn-primary">

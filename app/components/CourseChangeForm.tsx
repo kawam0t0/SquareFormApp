@@ -93,7 +93,7 @@ export function CourseChangeForm({ formData, updateFormData, nextStep, prevStep 
       {renderCourseSelection("新ご利用コース", newCourse, setNewCourse)}
 
       <div className="pt-4 grid grid-cols-2 gap-3">
-        <button type="button" onClick={() => { prevStep(); prevStep() }} className="btn btn-secondary">
+        <button type="button" onClick={() => { prevStep?.(); prevStep?.() }} className="btn btn-secondary">
           戻る
         </button>
         <button type="submit" className="btn btn-primary">
