@@ -391,7 +391,7 @@ export async function POST(request: Request) {
       const sheetData = [
         formatJapanDateTime(new Date()), // A: タイムスタンプ（JST表記）
         operation, // B: 操作
-        "", // C: リファレンスID（CloudSQL削除により空）
+        inputReferenceId || "", // C: リファレンスID
         storeName, // D: 店舗
         `${familyName} ${givenName}`, // E: 名前
         email, // F: メールアドレス
@@ -407,7 +407,7 @@ export async function POST(request: Request) {
         newCourse || "", // P: 新しいコース
         qColumnData, // Q: お問い合わせの種類と解約理由を組み合わせた形式
         "", // R: 空白
-        "", // S: 会員番号
+        "", // S: 空白
         campaignCode || "", // T: キャンペーンコード
       ]
       await appendToSheet([sheetData])
