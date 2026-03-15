@@ -321,7 +321,7 @@ export async function POST(request: Request) {
       const sheetData = [
         formatJapanDateTime(new Date()),
         operation || "",
-        referenceId || "",
+        inputReferenceId || referenceId || "", // C: お客様入力のリファランスID優先
         store || "",
         `${familyName || ""} ${givenName || ""}`.trim(),
         email || "",
