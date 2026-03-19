@@ -27,6 +27,7 @@ export function generateReferenceId(store: string): string {
       "SPLASH'N'GO!足利緑町店": "1004",
       "SPLASH'N'GO!新前橋店": "1005",
       "SPLASH'N'GO!太田新田店": "1006",
+      "SPLASH'N'GO!鹿児島中山店": "1007",
     }[store] || "1000"
 
   return generateShortUniqueId(storePrefix)
