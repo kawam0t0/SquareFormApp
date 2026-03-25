@@ -32,6 +32,13 @@ export function CourseChangeForm({ formData, updateFormData, nextStep, prevStep 
   const [currentCourse, setCurrentCourse] = useState<string | null>(null)
   const [newCourse, setNewCourse] = useState<string | null>(null)
 
+  const isKagoshimaStore = formData.store === "SPLASH'N'GO!鹿児島中山店"
+
+  // 鹿児島中山店の場合は2コースのみ、それ以外は全4コース
+  const availableCourses = isKagoshimaStore
+    ? courses.slice(0, 2) // プレミアムスタンダード・コーティングプラスのみ
+    : courses
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!currentCourse || !newCourse) {
@@ -46,18 +53,19 @@ export function CourseChangeForm({ formData, updateFormData, nextStep, prevStep 
     title: string,
     selectedCourse: string | null,
     setSelectedCourse: (course: string) => void,
+    courseList: typeof courses,
   ) => (
     <div className="space-y-4">
       <div className="flex flex-col gap-1">
         <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
-        {title === "新ご利用コース" && (
+        {title === "新ご利用コース" && !isKagoshimaStore && (
           <p className="text-xs text-gray-600">
             ※前橋50号店/伊勢崎韮塚店/足利緑町店はスーパーシャンプーナイアガラ/セラミックコーティングタートルシェルの取り扱いはございません
           </p>
         )}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {courses.map((course) => (
+        {courseList.map((course) => (
           <div
             key={course.id}
             className={`relative overflow-hidden rounded-xl shadow-md transition-all duration-300 ${
@@ -84,13 +92,13 @@ export function CourseChangeForm({ formData, updateFormData, nextStep, prevStep 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {renderCourseSelection("現ご利用コース", currentCourse, setCurrentCourse)}
+      {renderCourseSelection("現ご利用コース", currentCourse, setCurrentCourse, availableCourses)}
 
       <div className="flex justify-center py-4">
         <ChevronDown className="w-16 h-16 text-primary animate-bounce" strokeWidth={3} />
       </div>
 
-      {renderCourseSelection("新ご利用コース", newCourse, setNewCourse)}
+      {renderCourseSelection("新ご利用コース", newCourse, setNewCourse, availableCourses)}
 
       <div className="pt-4 grid grid-cols-2 gap-3">
         <button type="button" onClick={() => { prevStep?.(); prevStep?.() }} className="btn btn-secondary">
