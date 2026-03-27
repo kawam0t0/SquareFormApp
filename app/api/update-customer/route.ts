@@ -114,10 +114,18 @@ export async function POST(request: Request) {
         // 1. リファランスIDで候補を取得
         let byReferenceId: string[] = []
         if (inputReferenceId) {
+          console.log(`[v0] リファランスID検索: 入力値="${inputReferenceId}"`)
           const { result: refResult } = await customersApi.searchCustomers({
             query: { filter: { referenceId: { exact: inputReferenceId } } },
           })
           byReferenceId = (refResult.customers || []).map((c) => c.id as string)
+          console.log(`[v0] リファランスID検索結果: ${byReferenceId.length}件`)
+          if (refResult.customers) {
+            console.log(
+              `[v0] 検索結果の顧客ReferenceID:`,
+              refResult.customers.map((c) => ({ id: c.id, refId: c.referenceId }))
+            )
+          }
         }
 
         // 2. メールアドレスで候補を取得
@@ -240,6 +248,20 @@ export async function POST(request: Request) {
         console.warn("既存顧客情報の取得に失敗:", e)
       }
 
+      // 既存の familyName から名前部分を抽出する関数
+      const extractNameFromFamilyName = (familyNameStr: string | undefined): string => {
+        if (!familyNameStr) return ""
+        // familyName の形式: "リファランスID名前" または "車種/リファランスID名前"
+        // 最後のスラッシュ以降が名前部分と想定
+        const lastSlashIndex = familyNameStr.lastIndexOf("/")
+        if (lastSlashIndex !== -1) {
+          return familyNameStr.substring(lastSlashIndex + 1) // スラッシュ以降が名前
+        }
+        // スラッシュがない場合、最初の英数字とハイフン以降が名前と想定（リファランスIDが先頭）
+        const match = familyNameStr.match(/[a-zA-Z0-9\-]+(.*)/)
+        return match ? match[1] : familyNameStr
+      }
+
       let companyNameCandidate: string | undefined
       let familyNameForSquare: string | undefined
 
@@ -254,10 +276,11 @@ export async function POST(request: Request) {
         companyNameCandidate = buildCompanyName(carModel, carColor)
       } else {
         // 車両情報の入力がない場合（クレジットカード情報変更・メールアドレス変更・洗車コース変更）
-        // 既存の familyName / companyName をそのまま保持する
-        familyNameForSquare = existingFamilyName
+        // 既存の familyName から名前部分を抽出して保持する
+        const extractedName = extractNameFromFamilyName(existingFamilyName)
+        familyNameForSquare = extractedName ? `${inputReferenceId}${extractedName}` : existingFamilyName
         companyNameCandidate = existingCompanyName
-        console.log(`${operation}: 車両情報なし。既存値を保持 familyName=${existingFamilyName}, companyName=${existingCompanyName}`)
+        console.log(`${operation}: 車両情報なし。名前を保持 familyName=${familyNameForSquare}, companyName=${companyNameCandidate}`)
       }
 
       const updatePayload: any = {

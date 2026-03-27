@@ -58,8 +58,8 @@ export function PersonalInfo({ formData, updateFormData, nextStep, prevStep }: B
     if (requiresReferenceId) {
       if (!formData.referenceId || formData.referenceId.trim() === "") {
         newErrors.referenceId = "会員番号（リファランスID）は必須です。会員カードをご確認ください。"
-      } else if (!/^[a-zA-Z0-9]+$/.test(formData.referenceId)) {
-        newErrors.referenceId = "リファランスIDは半角英数字で入力してください。"
+      } else if (!/^[a-zA-Z0-9\-]+$/.test(formData.referenceId)) {
+        newErrors.referenceId = "リファランスIDは半角英数字とハイフン(-)で入力してください。"
       }
     }
 
@@ -153,10 +153,10 @@ export function PersonalInfo({ formData, updateFormData, nextStep, prevStep }: B
               <input
                 id="referenceId"
                 type="text"
-                placeholder="半角英数字（例：10011234567890）"
+                placeholder="半角英数字またはハイフン（例：m50-00309、100199999999）"
                 value={formData.referenceId || ""}
                 onChange={(e) => {
-                  const value = e.target.value.replace(/[^a-zA-Z0-9]/g, "")
+                  const value = e.target.value.replace(/[^a-zA-Z0-9\-]/g, "")
                   updateFormData({ referenceId: value })
                 }}
                 className="form-input font-mono"
