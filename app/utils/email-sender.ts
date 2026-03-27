@@ -164,7 +164,7 @@ export async function sendInquiryConfirmationEmail(
                 <tr>
                   <td style="padding: 15px;">
                     <p style="margin: 0 0 8px; font-size: 14px;"><strong style="color: #555;">メール:</strong> <a href="mailto:info@splashbrothers.co.jp" style="color: #0062E6; text-decoration: none;">info@splashbrothers.co.jp</a></p>
-                    <p style="margin: 0; font-size: 14px;"><strong style="color: #555;">電話:</strong> <a href="tel:050-1748-0947" style="color: #0062E6; text-decoration: none;">050-1748-0947</a></p>
+                    <p style="margin: 0; font-size: 14px;"><strong style="color: #555;">電話:</strong> <a href="tel:050-1740-5060" style="color: #0062E6; text-decoration: none;">050-1740-5060</a></p>
                   </td>
                 </tr>
               </table>
@@ -266,7 +266,7 @@ export async function sendConfirmationEmail(
                 <tr>
                   <td style="padding: 15px;">
                     <p style="margin: 0 0 8px; font-size: 14px;"><strong style="color: #555;">メール:</strong> <a href="mailto:info@splashbrothers.co.jp" style="color: #0062E6; text-decoration: none;">info@splashbrothers.co.jp</a></p>
-                    <p style="margin: 0; font-size: 14px;"><strong style="color: #555;">電話:</strong> <a href="tel:050-1748-0947" style="color: #0062E6; text-decoration: none;">050-1748-0947</a></p>
+                    <p style="margin: 0; font-size: 14px;"><strong style="color: #555;">電話:</strong> <a href="tel:050-1740-5060" style="color: #0062E6; text-decoration: none;">050-1740-5060</a></p>
                   </td>
                 </tr>
               </table>

@@ -138,10 +138,10 @@ export function Confirmation({ formData, prevStep, submitForm }: ConfirmationPro
                 お困りの場合は、こちらの電話番号までお願いします。
               </p>
               <a
-                href="tel:05017462409"
+                href="tel:05017405060"
                 className="text-lg font-bold mt-1 tracking-wide text-blue-700 underline underline-offset-2 hover:text-blue-900"
               >
-                050-1746-2409
+                050-1740-5060
               </a>
             </>
           ) : (
