@@ -148,12 +148,13 @@ export function PersonalInfo({ formData, updateFormData, nextStep, prevStep }: B
                 <span className="text-sm text-red-500 font-normal">※必須</span>
               </label>
               <p className="text-sm text-gray-500 mb-2">
-                会員カードのバーコード下またはカード裏面のNo.欄に記載されている番号を入力してください。
+                会員カードのバーコード下またはカード裏面のNo.欄に記載されている番号を入力してください。<br />
+                <span className="text-red-500">m50やiseなどアルファベットが記載されている場合はハイフンも含めてそのまま入力してください</span>
               </p>
               <input
                 id="referenceId"
                 type="text"
-                placeholder="半角英数字またはハイフン（例：m50-00309、100199999999）"
+                placeholder="半角英数字またはハイフン（例：m50-00309）"
                 value={formData.referenceId || ""}
                 onChange={(e) => {
                   const value = e.target.value.replace(/[^a-zA-Z0-9\-]/g, "")
