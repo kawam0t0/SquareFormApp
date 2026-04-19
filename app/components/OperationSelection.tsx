@@ -32,7 +32,7 @@ const storesByArea: Record<string, Array<{ value: string; label: string }>> = {
     { value: "SPLASH'N'GO!太田新田店", label: "太田新田店" },
   ],
   九州: [
-    { value: "SPLASH'N'GO!鹿児島中山店", label: "鹿児島中山店（3/19OPEN）" },
+    { value: "SPLASH'N'GO!鹿児島中山店", label: "鹿児島中山店" },
   ],
 }
 
