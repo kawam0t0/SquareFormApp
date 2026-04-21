@@ -7,7 +7,19 @@ interface ThankYouProps {
   formData: FormData
 }
 
+const KAGOSHIMA_STORE = "SPLASH'N'GO!鹿児島中山店"
+// UTC基準で比較（JST 00:00 = UTC前日 15:00Z）
+const CAMPAIGN_START_UTC = "2099-01-01T15:00:00Z"
+const CAMPAIGN_END_UTC   = "2099-01-01T14:59:59Z"
+
+function isKagoshimaCampaignActive(): boolean {
+  const now = new Date()
+  return now >= new Date(CAMPAIGN_START_UTC) && now <= new Date(CAMPAIGN_END_UTC)
+}
+
 export function ThankYou({ formData }: ThankYouProps) {
+  const showCampaignNotice = formData.store === KAGOSHIMA_STORE && isKagoshimaCampaignActive()
+
   return (
     <div className="text-center space-y-6">
       <div className="text-primary">
@@ -26,6 +38,17 @@ export function ThankYou({ formData }: ThankYouProps) {
         <br />
         担当者より1営業日~2営業日以内に登録頂いておりますメールアドレスにご連絡させていただきます。
       </p>
+      {showCampaignNotice && (
+        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+          <p className="text-sm font-semibold text-yellow-800">
+            【鹿児島中山店限定】
+            <br />
+            無料期間中にお申し込み頂いたお客様は
+            <br />
+            <span className="text-red-600">キャンペーン終了翌日に39円が決済されます</span>
+          </p>
+        </div>
+      )}
       <div className="pt-4">
         <a href="/" className="btn btn-primary">
           ホームに戻る

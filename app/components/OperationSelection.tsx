@@ -21,8 +21,13 @@ const areas = [
   { value: "九州", label: "九州エリア" },
 ]
 
-// エリアごとの店舗定義
-const storesByArea: Record<string, Array<{ value: string; label: string }>> = {
+// 4/25 00:00 JST 以降かどうか（UTC基準で比較：JST 4/25 00:00 = UTC 4/24 15:00）
+function isAfterApril25(): boolean {
+  return new Date() >= new Date("2026-04-24T15:00:00Z")
+}
+
+// エリアごとの店舗定義（基本）
+const storesByAreaBase: Record<string, Array<{ value: string; label: string }>> = {
   北関東: [
     { value: "SPLASH'N'GO!前橋50号店", label: "前橋50号店" },
     { value: "SPLASH'N'GO!伊勢崎韮塚店", label: "伊勢崎韮塚店" },
@@ -32,15 +37,27 @@ const storesByArea: Record<string, Array<{ value: string; label: string }>> = {
     { value: "SPLASH'N'GO!太田新田店", label: "太田新田店" },
   ],
   九州: [
-    { value: "SPLASH'N'GO!鹿児島中山店", label: "鹿児島中山店" },
+    { value: "SPLASH'N'GO!鹿児島中山店", label: "鹿児島中山店（3/19OPEN）" },
   ],
+}
+
+// 4/25以降に追加される店舗
+const fujiokaStore = { value: "SPLASH'N'GO!藤岡大塚店", label: "藤岡大塚店（4/25OPEN）" }
+
+function getStoresByArea(): Record<string, Array<{ value: string; label: string }>> {
+  if (!isAfterApril25()) return storesByAreaBase
+  return {
+    ...storesByAreaBase,
+    北関東: [...storesByAreaBase["北関東"], fujiokaStore],
+  }
 }
 
 export function OperationSelection({ formData, updateFormData, nextStep }: BaseFormProps) {
   const [selectedArea, setSelectedArea] = useState<string>("")
   const operations = allOperations
 
-  // エリアが選択されたら店舗リストを取得
+  // エリアが選択されたら店舗リストを取得（4/22以降は藤岡大塚店が追加される）
+  const storesByArea = getStoresByArea()
   const availableStores = selectedArea ? storesByArea[selectedArea] : []
 
   const handleAreaChange = (area: string) => {

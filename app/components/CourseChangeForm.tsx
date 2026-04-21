@@ -5,28 +5,21 @@ import { Check, ChevronDown } from "lucide-react"
 import type { BaseFormProps } from "../types"
 import type React from "react"
 
-const courses = [
-  {
-    id: "980",
-    name: "プレミアムスタンダード",
-    price: "980円",
-  },
-  {
-    id: "1280",
-    name: "コーティングプラス",
-    price: "1280円",
-  },
-  {
-    id: "1480",
-    name: "スーパーシャンプーナイアガラ",
-    price: "1480円",
-  },
-  {
-    id: "2980",
-    name: "セラミックコーティングタートルシェル",
-    price: "2980円",
-  },
-]
+// 4/25 00:00 JST 以降かどうか（UTC基準：JST 4/25 00:00 = UTC 4/24 15:00Z）
+function isAfterApril25(): boolean {
+  return new Date() >= new Date("2026-04-24T15:00:00Z")
+}
+
+function getCourses() {
+  return [
+    { id: "980",  name: "プレミアムスタンダード",      price: "980円" },
+    { id: "1280", name: "コーティングプラス",          price: "1280円" },
+    { id: "1480", name: "スーパーシャンプーナイアガラ", price: "1480円" },
+    { id: "2980", name: isAfterApril25() ? "スーパーデラックス" : "セラミックコーティングタートルシェル", price: "2980円" },
+  ]
+}
+
+const courses = getCourses()
 
 export function CourseChangeForm({ formData, updateFormData, nextStep, prevStep }: BaseFormProps) {
   const [currentCourse, setCurrentCourse] = useState<string | null>(null)
@@ -60,7 +53,7 @@ export function CourseChangeForm({ formData, updateFormData, nextStep, prevStep 
         <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
         {title === "新ご利用コース" && !isKagoshimaStore && (
           <p className="text-xs text-gray-600">
-            ※前橋50号店/伊勢崎韮塚店/足利緑町店はスーパーシャンプーナイアガラ/セラミックコーティングタートルシェルの取り扱いはございません
+            ※前橋50号店/伊勢崎韮塚店/足利緑町店はスーパーシャンプーナイアガラ/{isAfterApril25() ? "スーパーデラックス" : "セラミックコーティングタートルシェル"}の取り扱いはございません
           </p>
         )}
       </div>
