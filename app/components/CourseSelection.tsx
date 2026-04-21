@@ -65,8 +65,8 @@ const KAGOSHIMA_CAMPAIGN_COURSES = [
 ]
 
 function isKagoshimaCampaignActive(): boolean {
-  const nowJst = getNowJst()
-  return nowJst >= new Date(KAGOSHIMA_CAMPAIGN_START) && nowJst <= new Date(KAGOSHIMA_CAMPAIGN_END)
+  const now = new Date()
+  return now >= new Date(KAGOSHIMA_CAMPAIGN_START) && now <= new Date(KAGOSHIMA_CAMPAIGN_END)
 }
 
 // 北関東キャンペーンのコース（4/22〜5/31）
