@@ -103,9 +103,13 @@ export function CourseSelection({ formData, updateFormData, nextStep, prevStep }
     }
   }
 
-  // 北関東エリアキャンペーン 4/22〜5/31
+  // 北関東エリアキャンペーン 4/25〜5/31
   if (isKitakantoCampaign) {
-    const kitakantoCourses = getKyushuCampaignCourses()
+    const allKitakantoCourses = getKyushuCampaignCourses()
+    // 前橋50号店・伊勢崎韮塚店・足利緑町店はキャンペーン中も2コースのみ
+    const kitakantoCourses = limitedStores.includes(formData.store)
+      ? allKitakantoCourses.filter((c) => ["980", "1280"].includes(c.id))
+      : allKitakantoCourses
     return (
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="text-center mb-6">
