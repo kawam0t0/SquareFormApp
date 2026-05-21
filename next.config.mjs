@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -38,7 +35,7 @@ const nextConfig = {
     return [
       {
         source: '/(.*)',
-        destination: 'https://carwashform.app/:path*',
+        destination: 'https://form.splashbrothers.co.jp/',
         permanent: false, // 一時的なリダイレクト（302）
       },
     ]

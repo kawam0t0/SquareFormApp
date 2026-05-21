@@ -5,6 +5,8 @@ import { formatJapanDateTime } from "../../utils/date-utils"
 import { generateReferenceId } from "../../utils/reference-id"
 import { sendConfirmationEmail } from "../../utils/email-sender"
 
+export const maxDuration = 90
+
 const squareClient = new Client({
   accessToken: process.env.SQUARE_ACCESS_TOKEN,
   environment: Environment.Production,
