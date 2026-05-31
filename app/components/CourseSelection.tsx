@@ -11,9 +11,9 @@ function isAfterApril25(): boolean {
   return new Date() >= new Date("2026-04-24T15:00:00Z")
 }
 
-// 北関東キャンペーン: 終了済み（次回実施時はUTC基準で日付を更新）
-const KITAKANTO_CAMPAIGN_START_UTC = "2099-01-01T15:00:00Z"
-const KITAKANTO_CAMPAIGN_END_UTC   = "2099-01-01T14:59:59Z"
+// 北関東キャンペーン: JST 4/25 00:00 〜 5/31 23:59:59（6/1 00:00から自動的にデフォルト画面へ）
+const KITAKANTO_CAMPAIGN_START_UTC = "2026-04-24T15:00:00Z" // JST 4/25 00:00
+const KITAKANTO_CAMPAIGN_END_UTC   = "2026-05-31T14:59:59Z" // JST 5/31 23:59:59
 
 // 北関東エリアの全店舗（4/22以降に追加される藤岡大塚店も含む）
 const KITAKANTO_STORES = [
