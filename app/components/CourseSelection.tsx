@@ -11,7 +11,7 @@ function isAfterApril25(): boolean {
   return new Date() >= new Date("2026-04-24T15:00:00Z")
 }
 
-// 北関東キャンペーン: JST 4/25 00:00 〜 5/31 23:59:59
+// 北関東キャンペーン: JST 4/25 00:00 〜 5/31 23:59:59（6/1 00:00から自動的にデフォルト画面へ）
 const KITAKANTO_CAMPAIGN_START_UTC = "2026-04-24T15:00:00Z" // JST 4/25 00:00
 const KITAKANTO_CAMPAIGN_END_UTC   = "2026-05-31T14:59:59Z" // JST 5/31 23:59:59
 
