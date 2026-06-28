@@ -16,9 +16,12 @@ export function NGVehicleCheck({ prevStep, nextStep }: BaseFormProps) {
           priority
         />
       </div>
-      <p className="text-center text-sm text-gray-600">
-        上記の車両は洗車サービスをご利用いただけません。ご確認の上、お申し込みください。
-      </p>
+      <div className="space-y-2 text-center text-sm text-gray-600">
+        <p>上記の車両は洗車サービスをご利用いただけません。ご確認の上、お申し込みください。</p>
+        <p className="text-red-600 font-medium">
+          上記の車両に該当しているにもかかわらず、申し込まれた場合、ご退会されるまでの洗車料金の返金は致し兼ねますのであらかじめご了承ください。
+        </p>
+      </div>
 
       <div className="flex flex-col gap-4">
         <button
