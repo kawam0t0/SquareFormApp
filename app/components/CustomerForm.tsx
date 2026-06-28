@@ -16,6 +16,7 @@ import { NewVehicleInfo } from "./NewVehicleInfo"
 import { EmailChangeForm } from "./EmailChangeForm"
 import { NewPaymentInfo as CreditCardChangeForm } from "./NewPaymentInfo"
 import CourseChangeForm from "./CourseChangeForm"
+import { NGVehicleCheck } from "./NGVehicleCheck"
 import type { FormData } from "../types"
 
 export function CustomerForm() {
@@ -101,6 +102,13 @@ export function CustomerForm() {
       return <OperationSelection formData={formData} updateFormData={updateFormData} nextStep={nextStep} />
     }
 
+    // 入会・登録車両変更フローのみ step 2 に NGVehicleCheck を挿入
+    if ((formData.operation === "入会" || formData.operation === "登録車両変更") && step === 2) {
+      return (
+        <NGVehicleCheck formData={formData} updateFormData={updateFormData} nextStep={nextStep} prevStep={prevStep} />
+      )
+    }
+
     if (step === 2) {
       return (
         <PersonalInfo formData={formData} updateFormData={updateFormData} nextStep={nextStep} prevStep={prevStep} />
@@ -110,11 +118,11 @@ export function CustomerForm() {
     // 操作タイプに応じた分岐
     switch (formData.operation) {
       case "入会":
-        // 入会フロー: OperationSelection → PersonalInfo → VehicleInfo → CourseSelection → PaymentInfo → Confirmation
+        // 入会フロー: OperationSelection → NGVehicleCheck → PersonalInfo → VehicleInfo → CourseSelection → PaymentInfo → Confirmation
         switch (step) {
           case 3:
             return (
-              <VehicleInfo
+              <PersonalInfo
                 formData={formData}
                 updateFormData={updateFormData}
                 nextStep={nextStep}
@@ -123,7 +131,7 @@ export function CustomerForm() {
             )
           case 4:
             return (
-              <CourseSelection
+              <VehicleInfo
                 formData={formData}
                 updateFormData={updateFormData}
                 nextStep={nextStep}
@@ -132,7 +140,54 @@ export function CustomerForm() {
             )
           case 5:
             return (
+              <CourseSelection
+                formData={formData}
+                updateFormData={updateFormData}
+                nextStep={nextStep}
+                prevStep={prevStep}
+              />
+            )
+          case 6:
+            return (
               <PaymentInfo
+                formData={formData}
+                updateFormData={updateFormData}
+                nextStep={nextStep}
+                prevStep={prevStep}
+              />
+            )
+          case 7:
+            return <Confirmation formData={formData} prevStep={prevStep} submitForm={submitForm} />
+          case 8:
+            return <ThankYou formData={formData} />
+          default:
+            return null
+        }
+
+      case "登録車両変更":
+        // 登録車両変更フロー: OperationSelection → NGVehicleCheck → PersonalInfo → VehicleInfo → NewVehicleInfo → Confirmation
+        switch (step) {
+          case 3:
+            return (
+              <PersonalInfo
+                formData={formData}
+                updateFormData={updateFormData}
+                nextStep={nextStep}
+                prevStep={prevStep}
+              />
+            )
+          case 4:
+            return (
+              <VehicleInfo
+                formData={formData}
+                updateFormData={updateFormData}
+                nextStep={nextStep}
+                prevStep={prevStep}
+              />
+            )
+          case 5:
+            return (
+              <NewVehicleInfo
                 formData={formData}
                 updateFormData={updateFormData}
                 nextStep={nextStep}
@@ -142,34 +197,6 @@ export function CustomerForm() {
           case 6:
             return <Confirmation formData={formData} prevStep={prevStep} submitForm={submitForm} />
           case 7:
-            return <ThankYou formData={formData} />
-          default:
-            return null
-        }
-
-      case "登録車両変更":
-        switch (step) {
-          case 3:
-            return (
-              <VehicleInfo
-                formData={formData}
-                updateFormData={updateFormData}
-                nextStep={nextStep}
-                prevStep={prevStep}
-              />
-            )
-          case 4:
-            return (
-              <NewVehicleInfo
-                formData={formData}
-                updateFormData={updateFormData}
-                nextStep={nextStep}
-                prevStep={prevStep}
-              />
-            )
-          case 5:
-            return <Confirmation formData={formData} prevStep={prevStep} submitForm={submitForm} />
-          case 6:
             return <ThankYou formData={formData} />
           default:
             return null
@@ -295,8 +322,9 @@ export function CustomerForm() {
   const getTotalSteps = () => {
     switch (formData.operation) {
       case "入会":
-        return 6 // OperationSelection → PersonalInfo → VehicleInfo → CourseSelection → PaymentInfo → Confirmation
+        return 7 // OperationSelection → NGVehicleCheck → PersonalInfo → VehicleInfo → CourseSelection → PaymentInfo → Confirmation
       case "登録車両変更":
+        return 6 // OperationSelection → NGVehicleCheck → PersonalInfo → VehicleInfo → NewVehicleInfo → Confirmation
       case "クレジットカード情報変更":
       case "メールアドレス変更":
       case "各種手続き":
