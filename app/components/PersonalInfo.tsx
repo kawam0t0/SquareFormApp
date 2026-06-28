@@ -83,25 +83,6 @@ export function PersonalInfo({ formData, updateFormData, nextStep, prevStep }: B
   return (
     <>
       <form onSubmit={handleSubmit} className="form-section">
-        {/* 入会の場合のみNG車両画像を表示 */}
-        {formData.operation === "入会" && (
-          <div className="mb-8">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-              <Image
-                src="/images/ng-vehicles.png"
-                alt="NG車両（洗車対応ができない車両）"
-                width={1200}
-                height={800}
-                className="w-full h-auto"
-                priority
-              />
-            </div>
-            <p className="text-center text-sm text-gray-600 mt-4">
-              上記の車両は洗車サービスをご利用いただけません。ご確認の上、お申し込みください。
-            </p>
-          </div>
-        )}
-
         {/* キャンペーンコード入力欄（新前橋店かつ入会の場合のみ表示） */}
         {formData.operation === "入会" && formData.store === "SPLASH'N'GO!新前橋店" && (
           <div className="mb-6 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl">
