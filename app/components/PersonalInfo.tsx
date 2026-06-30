@@ -60,6 +60,9 @@ export function PersonalInfo({ formData, updateFormData, nextStep, prevStep }: B
         newErrors.referenceId = "会員番号（リファランスID）は必須です。会員カードをご確認ください。"
       } else if (!/^[a-zA-Z0-9\-]+$/.test(formData.referenceId)) {
         newErrors.referenceId = "リファランスIDは半角英数字とハイフン(-)で入力してください。"
+      } else if (/^[a-zA-Z0-9]{1,5}$/.test(formData.referenceId.trim())) {
+        // ハイフンなしで1〜5桁のみは無効（入力不足の可能性が高い）
+        newErrors.referenceId = "会員番号が正しくありません。会員カードをご確認の上、再度入力してください。"
       }
     }
 
