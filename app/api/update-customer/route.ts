@@ -65,6 +65,7 @@ export async function POST(request: Request) {
       carModel,
       carColor,
       course,
+      currentCourse,
       newCarModel,
       newCarColor,
       newCourse,
@@ -384,7 +385,7 @@ export async function POST(request: Request) {
 
       let qColumnData = ""
       if (operation === "各種手続き" && procedure) {
-        qColumnData = `【${procedure}】`
+        qColumnData = `��${procedure}】`
         if (reasonsMerged.length > 0) {
           qColumnData += ` 解約理由: ${reasonsMerged.join(", ")}`
         }
@@ -423,7 +424,7 @@ export async function POST(request: Request) {
         carModel || "", // I: 車種
         carColor || "", // J: 車の色
         "", // K: ナンバー（削除済み）
-        course || "", // L: 洗車コース名
+        currentCourse || course || "", // L: 現ご利用コース（洗車コース変更時はcurrentCourse優先）
         newCarModel || "", // M: 新しい車種
         newCarColor || "", // N: 新しい車の色
         "", // O: 新しいナンバー（削除済み）
